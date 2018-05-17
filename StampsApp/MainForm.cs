@@ -1,15 +1,9 @@
-﻿using OpenCvSharp;
-using StampsApp.data;
+﻿using StampsApp.data;
+using StampsApp.util;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace StampsApp
@@ -72,35 +66,7 @@ namespace StampsApp
 
             Debug.Print("[" + item.Name + "]");
             PictureBox.Image?.Dispose();
-            //PictureBox.Image = Image.FromFile(item.Name);
-
-            using (var knn = BackgroundSubtractorKNN.Create())
-            using (var bg = new Mat(bgName, ImreadModes.Color))
-            using (var fg = new Mat(item.Name, ImreadModes.Color))
-            using (var bgGray = bg.CvtColor(ColorConversionCodes.BGR2GRAY))
-            using (var fgGray = fg.CvtColor(ColorConversionCodes.BGR2GRAY))
-            {
-                var mats = new List<Mat>() { bgGray, fgGray };
-                //var images = InputArray.Create(mats);
-                var outMat = new Mat();
-                var outArray = OutputArray.Create(outMat);
-                var src1 = InputArray.Create(bgGray);
-                var src2 = InputArray.Create(fgGray);
-
-                var cap = new VideoCapture();
-                var v = new VideoWriter();
-
-                cap.Read(bgGray);
-                v.Write(bgGray);
-                v.Write(fgGray);
-                //Cv2.Absdiff(bgGray, fgGray, outMat);
-                knn.Apply(src1, outMat);
-
-                var bytes = outMat.ImEncode();
-                var img = Image.FromStream(new MemoryStream(bytes));
-
-                PictureBox.Image = img;
-            }
+            PictureBox.Image = ImageUtils.Absdiff(bgName, item.Name);
         }
         #endregion
 
