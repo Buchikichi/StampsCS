@@ -1,6 +1,7 @@
 ﻿using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
+using Emgu.CV.Util;
 using System;
 using System.Drawing;
 
@@ -24,14 +25,6 @@ namespace StampsApp.util
             return rect;
         }
 
-        private static Mat ToGray(Mat src)
-        {
-            var gray = new Mat();
-
-            CvInvoke.CvtColor(src, gray, ColorConversion.Bgr2Gray);
-            return gray;
-        }
-
         private static Mat Trim(Mat src, Rectangle rect)
         {
             // return src.Clone(rect);
@@ -40,45 +33,102 @@ namespace StampsApp.util
             using (var g = Graphics.FromImage(dest))
             {
                 g.DrawImage(srcBitmap, 0, 0);
-                return new Image<Bgr, byte>(dest).Mat;
+                var mat = new Image<Bgr, byte>(dest).Mat;
+
+                CvInvoke.CvtColor(mat, mat, ColorConversion.Bgr2Gray);
+                return mat;
+            }
+        }
+
+        private static void Transform(Mat src, Mat dst)
+        {
+            var src2 = new Mat();
+            var dst2 = new Mat();
+            var warp = Mat.Eye(3, 3, DepthType.Cv32F, 1);
+            var criteria = new MCvTermCriteria(50, 1e-10);
+
+            CvInvoke.Canny(src, src2, 250, 255);
+            CvInvoke.Canny(dst, dst2, 250, 255);
+            CvInvoke.FindTransformECC(dst2, src2, warp, MotionType.Homography, criteria);
+            CvInvoke.WarpPerspective(dst, dst, warp, src.Size);
+        }
+
+        private static void FindContours(Mat mat)
+        {
+            using (var contours = new VectorOfVectorOfPoint())
+            {
+                var bin = new Mat();
+
+                CvInvoke.Threshold(mat, bin, 80, 255, ThresholdType.Binary);
+                CvInvoke.FindContours(bin, contours, null, RetrType.List, ChainApproxMethod.LinkRuns);
+                CvInvoke.BitwiseNot(mat, mat);
+                CvInvoke.CvtColor(mat, mat, ColorConversion.Gray2Bgr);
+                for (var ix = 0; ix < contours.Size; ix++)
+                {
+                    var area = CvInvoke.ContourArea(contours[ix]);
+
+                    if (area < 4000 || 90000 < area)
+                    {
+                        continue;
+                    }
+                    using (var vec = new VectorOfPoint())
+                    {
+                        var peri = CvInvoke.ArcLength(contours[ix], true);
+
+                        CvInvoke.ApproxPolyDP(contours[ix], vec, peri * .1, true);
+                        if (vec.Size != 4)
+                        {
+                            continue;
+                        }
+                        var cn = new VectorOfVectorOfPoint();
+                        cn.Push(vec);
+                        CvInvoke.DrawContours(mat, cn, 0, new MCvScalar(0, 0, 200), 8);
+                    }
+                }
+            }
+        }
+
+        public static Image Lines(string filename)
+        {
+            using (var mat = new Mat(filename, ImreadModes.ReducedGrayscale2))
+            {
+                var min = mat.Height / 20;
+                CvInvoke.Canny(mat, mat, 250, 255, 3);
+                var lines = CvInvoke.HoughLinesP(mat, 1, Math.PI / 180, 50, min);
+                CvInvoke.BitwiseNot(mat, mat);
+                var bmp = mat.Bitmap;
+                var dest = new Bitmap(bmp.Width, bmp.Height);
+
+                using (var g = Graphics.FromImage(dest))
+                {
+                    g.DrawImage(bmp, 0, 0);
+                    foreach (var seg in lines)
+                    {
+                        g.DrawLine(Pens.Red, seg.P1, seg.P2);
+                    }
+                }
+                return dest;
             }
         }
 
         public static Image Absdiff(string bgName, string fgName)
         {
-            using (var subt = new BackgroundSubtractorMOG2())
             using (var bg = new Mat(bgName))
             using (var fg = new Mat(fgName))
-            using (var bgGray = ToGray(bg))
-            using (var fgGray = ToGray(fg))
             {
-                var diff = new Mat();
-                var outMat = new Mat();
-                var rect = CalcRect(bgGray, fgGray);
-                var src1 = Trim(bgGray, rect);
-                var src2 = Trim(fgGray, rect);
+                var rect = CalcRect(bg, fg);
+                using (var bgGray = Trim(bg, rect))
+                using (var fgGray = Trim(fg, rect))
+                {
+                    Transform(bgGray, fgGray);
+                    var diff = new Mat();
 
-                //var cap = new VideoCapture();
-                //var v = new VideoWriter();
-
-                //cap.Read(bgGray);
-                //v.Write(bgGray);
-                //v.Write(fgGray);
-
-                // TODO findTransformECC
-                //Cv2.Absdiff(src1, src2, diff);
-                CvInvoke.AbsDiff(src1, src2, diff);
-                //subt.Apply(src1, outMat);
-                //subt.Apply(src2, diff);
-                //Cv2.Threshold(diff, diff, 50, 255, ThresholdTypes.Binary);
-                CvInvoke.Threshold(diff, diff, 50, 255, ThresholdType.Binary);
-                //Cv2.BitwiseNot(diff, diff);
-                CvInvoke.BitwiseNot(diff, diff);
-                //using (var stream = new MemoryStream(diff.ImEncode()))
-                //{
-                //    return Image.FromStream(stream);
-                //}
-                return diff.Bitmap;
+                    CvInvoke.AbsDiff(bgGray, fgGray, diff);
+                    //FindContours(diff);
+                    //CvInvoke.Threshold(diff, diff, 30, 255, ThresholdType.Binary);
+                    CvInvoke.BitwiseNot(diff, diff);
+                    return diff.Bitmap;
+                }
             }
         }
     }
