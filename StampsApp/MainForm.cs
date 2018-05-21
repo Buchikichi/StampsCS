@@ -3,6 +3,7 @@ using StampsApp.util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
@@ -10,6 +11,11 @@ namespace StampsApp
 {
     public partial class MainForm : Form
     {
+        #region Members
+        private BasePapers basePapers;
+        #endregion
+
+        #region Events
         private List<string> ListFiles(string[] nameList)
         {
             var list = new List<string>();
@@ -30,7 +36,6 @@ namespace StampsApp
             return list;
         }
 
-        #region Events
         private void FileListBox_DragEnter(object sender, DragEventArgs e)
         {
             e.Effect = DragDropEffects.None;
@@ -71,9 +76,19 @@ namespace StampsApp
         #endregion
 
         #region 開始/終了
+        private void Initialize()
+        {
+            basePapers = new BasePapers("C:/Users/dss/Desktop/images/pages/");
+            var paper = basePapers.BasePaperList[0];
+            var conv = new ImageConverter();
+
+            PictureBox.Image = (Image)conv.ConvertFrom(paper.Image);
+        }
+
         public MainForm()
         {
             InitializeComponent();
+            Initialize();
         }
         #endregion
     }
