@@ -16,6 +16,19 @@ namespace StampsApp.util
         public List<BasePaperInfo> BasePaperList { get; } = new List<BasePaperInfo>();
         #endregion
 
+        public BasePaperInfo GetBasePaper(string target)
+        {
+
+
+            foreach (var element in BasePaperList)
+            {
+                var paper = element.Clone();
+
+
+            }
+            return null;
+        }
+
         #region 開始/終了
         private byte[] LoadImage(string filename)
         {
