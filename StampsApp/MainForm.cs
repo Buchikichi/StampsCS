@@ -66,12 +66,14 @@ namespace StampsApp
 
         private void FileListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var bgName = "C:/Users/dss/Desktop/images/pages/1700171.jpg";
             var item = (PictureInfo)FileListBox.SelectedItem;
+            var info = basePapers.GetBasePaper(item.Name);
 
-            Debug.Print("[" + item.Name + "]");
+            Debug.Print("[" + info.Name + "]");
+            Cursor.Current = Cursors.WaitCursor;
             PictureBox.Image?.Dispose();
-            PictureBox.Image = ImageUtils.Absdiff(bgName, item.Name);
+            PictureBox.Image = ImageUtils.Absdiff(info.Filename, item.Name);
+            Cursor.Current = Cursors.Default;
         }
         #endregion
 
@@ -79,10 +81,10 @@ namespace StampsApp
         private void Initialize()
         {
             basePapers = new BasePapers("C:/Users/dss/Desktop/images/pages/");
-            var paper = basePapers.BasePaperList[0];
-            var conv = new ImageConverter();
+            //var paper = basePapers.BasePaperList[0];
+            //var conv = new ImageConverter();
 
-            PictureBox.Image = (Image)conv.ConvertFrom(paper.Image);
+            //PictureBox.Image = (Image)conv.ConvertFrom(paper.Image);
         }
 
         public MainForm()

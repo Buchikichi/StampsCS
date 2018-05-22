@@ -1,5 +1,6 @@
 ﻿using Emgu.CV;
 using Emgu.CV.CvEnum;
+using Emgu.CV.Features2D;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using System;
@@ -9,6 +10,8 @@ namespace StampsApp.util
 {
     class ImageUtils
     {
+        private const int MAX_ITERATION = 50;
+
         private static Rectangle CalcRect(params Mat[] images)
         {
             var rect = new Rectangle();
@@ -45,7 +48,7 @@ namespace StampsApp.util
             var src2 = new Mat();
             var dst2 = new Mat();
             var warp = Mat.Eye(3, 3, DepthType.Cv32F, 1);
-            var criteria = new MCvTermCriteria(50, 1e-10);
+            var criteria = new MCvTermCriteria(MAX_ITERATION, 1e-10);
 
             CvInvoke.Canny(src, src2, 250, 255);
             CvInvoke.Canny(dst, dst2, 250, 255);
@@ -86,6 +89,32 @@ namespace StampsApp.util
                     }
                 }
             }
+        }
+
+        public static double CalcDistance(Mat src, Mat dst)
+        {
+            var detector = new AKAZE();
+            var matcher = new BFMatcher(DistanceType.Hamming2);
+            var srcKeyPoints = new VectorOfKeyPoint();
+            var dstKeyPoints = new VectorOfKeyPoint();
+            var srcDes = new UMat();
+            var dstDes = new UMat();
+            var matches = new VectorOfVectorOfDMatch();
+            var k = 2;
+            var total = 0.0;
+
+            detector.DetectAndCompute(src, null, srcKeyPoints, srcDes, false);
+            detector.DetectAndCompute(dst, null, dstKeyPoints, dstDes, false);
+            matcher.Add(srcDes);
+            matcher.KnnMatch(dstDes, matches, k, null);
+            foreach (var ary in matches.ToArrayOfArray())
+            {
+                foreach (var match in ary)
+                {
+                    total += match.Distance;
+                }
+            }
+            return total / matches.Size;
         }
 
         public static Image Lines(string filename)
