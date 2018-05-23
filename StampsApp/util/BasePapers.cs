@@ -1,6 +1,8 @@
 ﻿using Emgu.CV;
 using Emgu.CV.Structure;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 
@@ -9,17 +11,28 @@ namespace StampsApp.util
     class BasePapers
     {
         #region Members
-        private const int SRC_X = 50;
-        private const int SRC_WIDTH = 1600;
-        private const int SRC_HEIGHT = 800;
-        private const double BASE_RATIO = .1;
-        private const int BASE_WIDTH = (int)(SRC_WIDTH * BASE_RATIO);
-        private const int BASE_HEIGHT = (int)(SRC_HEIGHT * BASE_RATIO);
+        private const double BASE_RATIO = .2;
+        private Preference ini = Preference.Instance;
 
         public List<BasePaperInfo> BasePaperList { get; } = new List<BasePaperInfo>();
         #endregion
 
-        public BasePaperInfo GetBasePaper(string filename)
+        private void CalcDiff(BasePaperInfo info, string srcFile)
+        {
+            var src = LoadImage(srcFile, 1);
+            var dst = LoadImage(info.Filename, 1);
+            var diff = ImageUtils.CalcDiff(src, dst);
+            var sq = Math.Abs(diff.Width * diff.Height);
+
+            Debug.Print("diff=" + diff.Width + ":" + diff.Height + "/sq=" + sq);
+            if (sq < 40)
+            {
+                info.DiffW = diff.Width;
+                info.DiffH = diff.Height;
+            }
+        }
+
+        public BasePaperInfo ChooseBasePaper(string filename)
         {
             var list = new List<BasePaperInfo>();
             var bytes = LoadImage(filename);
@@ -43,20 +56,25 @@ namespace StampsApp.util
                 }
             }
             list.Sort((a, b) => (int)(a.Distance * 10000 - b.Distance * 10000));
-            return list[0];
+            //list.ForEach(info => Debug.Print(info.Name + ":" + info.Distance));
+            var result = list[0];
+            CalcDiff(result, filename);
+            return result;
         }
 
         #region 開始/終了
-        private byte[] LoadImage(string filename)
+        private byte[] LoadImage(string filename, double ratio = BASE_RATIO)
         {
+            var srcRect = ini.BaseRectangle;
+            var baseWidth = (int)(srcRect.Width * ratio);
+            var baseHeight = (int)(srcRect.Height * ratio);
             var conv = new ImageConverter();
 
-            using (var img = new Bitmap(BASE_WIDTH, BASE_HEIGHT))
+            using (var img = new Bitmap(baseWidth, baseHeight))
             using (var g = Graphics.FromImage(img))
             using (var src = Image.FromFile(filename))
             {
-                var srcRect = new Rectangle(SRC_X, 0, SRC_WIDTH, SRC_HEIGHT);
-                var destRect = new Rectangle(0, 0, BASE_WIDTH, BASE_HEIGHT);
+                var destRect = new Rectangle(0, 0, baseWidth, baseHeight);
 
                 g.DrawImage(src, destRect, srcRect, GraphicsUnit.Pixel);
                 return (byte[])conv.ConvertTo(img, typeof(byte[]));

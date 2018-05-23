@@ -10,7 +10,8 @@ namespace StampsApp.util
 {
     class ImageUtils
     {
-        private const int MAX_ITERATION = 50;
+        private const int MAX_ITERATION = 5;
+        private static Preference ini = Preference.Instance;
 
         private static Rectangle CalcRect(params Mat[] images)
         {
@@ -35,12 +36,21 @@ namespace StampsApp.util
             using (var dest = new Bitmap(rect.Width, rect.Height))
             using (var g = Graphics.FromImage(dest))
             {
-                g.DrawImage(srcBitmap, 0, 0);
+                g.DrawImage(srcBitmap, -rect.X, -rect.Y);
                 var mat = new Image<Bgr, byte>(dest).Mat;
 
                 CvInvoke.CvtColor(mat, mat, ColorConversion.Bgr2Gray);
                 return mat;
             }
+        }
+
+        private static void Affine(BasePaperInfo bgInfo, Mat dst)
+        {
+            var w = ((bgInfo.DiffW + 1) * 2) - 1;
+            float[,] matrix = { { 1.0f, 0.0f, w }, { 0.0f, 1.0f, bgInfo.DiffH } };
+            var warp = new Matrix<float>(matrix);
+
+            CvInvoke.WarpAffine(dst, dst, warp, dst.Size);
         }
 
         private static void Transform(Mat src, Mat dst)
@@ -52,8 +62,15 @@ namespace StampsApp.util
 
             CvInvoke.Canny(src, src2, 250, 255);
             CvInvoke.Canny(dst, dst2, 250, 255);
-            CvInvoke.FindTransformECC(dst2, src2, warp, MotionType.Homography, criteria);
-            CvInvoke.WarpPerspective(dst, dst, warp, src.Size);
+            try
+            {
+                CvInvoke.FindTransformECC(dst2, src2, warp, MotionType.Homography, criteria);
+                CvInvoke.WarpPerspective(dst, dst, warp, src.Size);
+            }
+            catch (Exception e)
+            {
+                // nop
+            }
         }
 
         private static void FindContours(Mat mat)
@@ -117,6 +134,26 @@ namespace StampsApp.util
             return total / matches.Size;
         }
 
+        public static Size CalcDiff(byte[] src, byte[] dst)
+        {
+            var conv = new ImageConverter();
+
+            using (var srcImage = (Bitmap)conv.ConvertFrom(src))
+            using (var srcMat = new Image<Bgr, byte>(srcImage).Mat)
+            using (var dstImage = (Bitmap)conv.ConvertFrom(dst))
+            using (var dstMat = new Image<Bgr, byte>(dstImage).Mat)
+            {
+                CvInvoke.CvtColor(srcMat, srcMat, ColorConversion.Bgr2Gray);
+                CvInvoke.CvtColor(dstMat, dstMat, ColorConversion.Bgr2Gray);
+                var srcM = CvInvoke.Moments(srcMat);
+                var dstM = CvInvoke.Moments(dstMat);
+                var srcPt = new Point((int)(srcM.M10 / srcM.M00), (int)(srcM.M01 / srcM.M00));
+                var dstPt = new Point((int)(dstM.M10 / dstM.M00), (int)(dstM.M01 / dstM.M00));
+
+                return new Size(srcPt.X - dstPt.X, srcPt.Y - dstPt.Y);
+            }
+        }
+
         public static Image Lines(string filename)
         {
             using (var mat = new Mat(filename, ImreadModes.ReducedGrayscale2))
@@ -140,15 +177,16 @@ namespace StampsApp.util
             }
         }
 
-        public static Image Absdiff(string bgName, string fgName)
+        public static Image Absdiff(BasePaperInfo bgInfo, string fgName)
         {
-            using (var bg = new Mat(bgName))
+            using (var bg = new Mat(bgInfo.Filename))
             using (var fg = new Mat(fgName))
             {
-                var rect = CalcRect(bg, fg);
+                var rect = ini.ClipRectangle;
                 using (var bgGray = Trim(bg, rect))
                 using (var fgGray = Trim(fg, rect))
                 {
+                    Affine(bgInfo, fgGray);
                     Transform(bgGray, fgGray);
                     var diff = new Mat();
 

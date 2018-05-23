@@ -3,7 +3,6 @@ using StampsApp.util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
@@ -67,12 +66,12 @@ namespace StampsApp
         private void FileListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             var item = (PictureInfo)FileListBox.SelectedItem;
-            var info = basePapers.GetBasePaper(item.Name);
+            var info = basePapers.ChooseBasePaper(item.Name);
 
             Debug.Print("[" + info.Name + "]");
             Cursor.Current = Cursors.WaitCursor;
             PictureBox.Image?.Dispose();
-            PictureBox.Image = ImageUtils.Absdiff(info.Filename, item.Name);
+            PictureBox.Image = ImageUtils.Absdiff(info, item.Name);
             Cursor.Current = Cursors.Default;
         }
         #endregion
@@ -81,7 +80,7 @@ namespace StampsApp
         private void Initialize()
         {
             basePapers = new BasePapers("C:/Users/dss/Desktop/images/pages/");
-            //var paper = basePapers.BasePaperList[0];
+            //var paper = basePapers.BasePaperList[12];
             //var conv = new ImageConverter();
 
             //PictureBox.Image = (Image)conv.ConvertFrom(paper.Image);
