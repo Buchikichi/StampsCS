@@ -28,9 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.FileListBox = new System.Windows.Forms.ListBox();
             this.PictureBox = new System.Windows.Forms.PictureBox();
+            this.AntPicture = new StampsApp.behavior.AntPictureBox(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.AntPicture)).BeginInit();
             this.SuspendLayout();
             // 
             // FileListBox
@@ -41,7 +44,7 @@
             this.FileListBox.FormattingEnabled = true;
             this.FileListBox.ItemHeight = 19;
             this.FileListBox.Location = new System.Drawing.Point(20, 19);
-            this.FileListBox.Margin = new System.Windows.Forms.Padding(5, 5, 5, 5);
+            this.FileListBox.Margin = new System.Windows.Forms.Padding(5);
             this.FileListBox.Name = "FileListBox";
             this.FileListBox.Size = new System.Drawing.Size(160, 403);
             this.FileListBox.TabIndex = 0;
@@ -61,20 +64,35 @@
             this.PictureBox.TabIndex = 1;
             this.PictureBox.TabStop = false;
             // 
+            // AntPicture
+            // 
+            this.AntPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.AntPicture.BackColor = System.Drawing.Color.Transparent;
+            this.AntPicture.Location = new System.Drawing.Point(188, 12);
+            this.AntPicture.Name = "AntPicture";
+            this.AntPicture.Size = new System.Drawing.Size(424, 417);
+            this.AntPicture.TabIndex = 2;
+            this.AntPicture.TabStop = false;
+            this.AntPicture.DoubleClick += new System.EventHandler(this.AntPicture_DoubleClick);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 19F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(624, 441);
+            this.Controls.Add(this.AntPicture);
             this.Controls.Add(this.PictureBox);
             this.Controls.Add(this.FileListBox);
             this.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.Margin = new System.Windows.Forms.Padding(5, 5, 5, 5);
+            this.Margin = new System.Windows.Forms.Padding(5);
             this.MinimumSize = new System.Drawing.Size(640, 480);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "MainForm";
             ((System.ComponentModel.ISupportInitialize)(this.PictureBox)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.AntPicture)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -83,6 +101,7 @@
 
         private System.Windows.Forms.ListBox FileListBox;
         private System.Windows.Forms.PictureBox PictureBox;
+        private behavior.AntPictureBox AntPicture;
     }
 }
 

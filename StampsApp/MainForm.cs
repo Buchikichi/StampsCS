@@ -1,8 +1,12 @@
-﻿using StampsApp.data;
+﻿using Emgu.CV;
+using Emgu.CV.OCR;
+using Emgu.CV.Structure;
+using StampsApp.data;
 using StampsApp.util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
@@ -12,6 +16,7 @@ namespace StampsApp
     {
         #region Members
         private BasePapers basePapers;
+        private Preference ini = Preference.Instance;
         #endregion
 
         #region Events
@@ -68,11 +73,41 @@ namespace StampsApp
             var item = (PictureInfo)FileListBox.SelectedItem;
             var info = basePapers.ChooseBasePaper(item.Name);
 
-            Debug.Print("[" + info.Name + "]");
+            Debug.Print($"[{info.Name}]");
             Cursor.Current = Cursors.WaitCursor;
+            var img = (Bitmap)ImageUtils.Absdiff(info, item.Name);
+
+            //using (var tesseract = new Tesseract("I:/tesseract-ocr/tessdata/", "eng", OcrEngineMode.Default))
+            //using (var mat = new Image<Bgr, byte>(img).Mat)
+            //{
+            //    tesseract.SetImage(mat);
+            //    var i = tesseract.Recognize();
+            //    var text = tesseract.GetUTF8Text();
+
+            //    Debug.Print($"OCR[{text}]");
+            //}
             PictureBox.Image?.Dispose();
-            PictureBox.Image = ImageUtils.Absdiff(info, item.Name);
+            PictureBox.Image = img;
             Cursor.Current = Cursors.Default;
+        }
+        #endregion
+
+        #region PictureBox
+        private void AntPicture_DoubleClick(object sender, EventArgs e)
+        {
+            var item = (PictureInfo)FileListBox.SelectedItem;
+
+            if (item == null)
+            {
+                return;
+            }
+            var uuid = Guid.NewGuid().ToString();
+            var filename = ini.ImageDir + "stamps/" + uuid + ".jpg";
+
+            using (var bmp = AntPicture.TrimImage((Bitmap)PictureBox.Image))
+            {
+                ImageUtils.Save(filename, bmp);
+            }
         }
         #endregion
 
@@ -84,6 +119,8 @@ namespace StampsApp
             //var conv = new ImageConverter();
 
             //PictureBox.Image = (Image)conv.ConvertFrom(paper.Image);
+            AntPicture.Parent = PictureBox;
+            AntPicture.Location = new Point();
         }
 
         public MainForm()

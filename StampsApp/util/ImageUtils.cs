@@ -4,6 +4,7 @@ using Emgu.CV.Features2D;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace StampsApp.util
@@ -13,25 +14,8 @@ namespace StampsApp.util
         private const int MAX_ITERATION = 5;
         private static Preference ini = Preference.Instance;
 
-        private static Rectangle CalcRect(params Mat[] images)
-        {
-            var rect = new Rectangle();
-            var width = int.MaxValue;
-            var height = int.MaxValue;
-
-            foreach (var mat in images)
-            {
-                width = Math.Min(width, mat.Width);
-                height = Math.Min(height, mat.Height);
-            }
-            rect.Width = width;
-            rect.Height = height;
-            return rect;
-        }
-
         private static Mat Trim(Mat src, Rectangle rect)
         {
-            // return src.Clone(rect);
             using (var srcBitmap = src.Bitmap)
             using (var dest = new Bitmap(rect.Width, rect.Height))
             using (var g = Graphics.FromImage(dest))
@@ -196,6 +180,16 @@ namespace StampsApp.util
                     CvInvoke.BitwiseNot(diff, diff);
                     return diff.Bitmap;
                 }
+            }
+        }
+
+        public static void Save(string filename, Bitmap bmp)
+        {
+            using (var mat = new Image<Bgr, byte>(bmp).Mat)
+            {
+                var param = new KeyValuePair<ImwriteFlags, int>(ImwriteFlags.JpegQuality, ini.JpegQuality);
+
+                CvInvoke.Imwrite(filename, mat, param);
             }
         }
     }

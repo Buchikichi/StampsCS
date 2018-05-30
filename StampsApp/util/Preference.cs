@@ -12,6 +12,7 @@ namespace StampsApp.util
         public static readonly Preference Instance = new Preference();
         private const string INI_FILE = "preference.ini";
         private const string CATEGORY_IMAGE = "IMAGE";
+        private const string CATEGORY_FILE = "FILE";
 
         #region Method
         public int GetInt(string appName, string key, int defaultValue = 0)
@@ -53,6 +54,9 @@ namespace StampsApp.util
         public int TopMargin => GetInt(CATEGORY_IMAGE, nameof(TopMargin));
         public Rectangle BaseRectangle => GetRectangle(CATEGORY_IMAGE, nameof(BaseRectangle));
         public Rectangle ClipRectangle => GetRectangle(CATEGORY_IMAGE, nameof(ClipRectangle));
+        public int JpegQuality => GetInt(CATEGORY_IMAGE, nameof(JpegQuality));
+
+        public string ImageDir => GetString(CATEGORY_FILE, nameof(ImageDir));
         #endregion
 
         #region 開始/終了
