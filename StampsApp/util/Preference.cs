@@ -57,6 +57,8 @@ namespace StampsApp.util
         public int JpegQuality => GetInt(CATEGORY_IMAGE, nameof(JpegQuality));
 
         public string ImageDir => GetString(CATEGORY_FILE, nameof(ImageDir));
+        public string PosDir => ImageDir + "/" + GetString(CATEGORY_FILE, nameof(PosDir));
+        public string NegDir => ImageDir + "/" + GetString(CATEGORY_FILE, nameof(NegDir));
         #endregion
 
         #region 開始/終了

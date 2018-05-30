@@ -90,6 +90,49 @@ namespace StampsApp
             PictureBox.Image = img;
             Cursor.Current = Cursors.Default;
         }
+
+        private void CreateSampleButton_Click(object sender, EventArgs e)
+        {
+            var posFile = ini.PosDir + "list.txt";
+            var negFile = ini.NegDir + "neglist.txt";
+
+            using (var writer = new StreamWriter(posFile, append: false))
+            {
+                foreach (var file in Directory.GetFiles(ini.PosDir, "*.jpg"))
+                {
+                    var name = Path.GetFileName(file);
+
+                    using (var img = Image.FromFile(file))
+                    {
+                        var width = img.Width;
+                        var height = img.Height;
+                        var line = new List<string>{
+                            name, "1", "0", "0", width.ToString(), height.ToString(),
+                        };
+                        writer.WriteLine(string.Join(" ", line));
+                    }
+                }
+            }
+            using (var writer = new StreamWriter(negFile, append: false))
+            {
+                var negList = new List<string>();
+                var rel = Path.GetFileName(Path.GetDirectoryName(ini.NegDir));
+
+                Debug.Print(rel);
+                foreach (var ptn in new string[] { "*.jpg", "*.png" })
+                {
+                    negList.AddRange(Directory.GetFiles(ini.NegDir, ptn));
+                }
+                foreach (var file in negList)
+                {
+                    var name = "./" + rel + "/" + Path.GetFileName(file);
+
+                    writer.WriteLine(name);
+                    Debug.Print(name);
+                }
+            }
+            MessageBox.Show($"Wrote [{posFile}].");
+        }
         #endregion
 
         #region PictureBox
@@ -102,7 +145,7 @@ namespace StampsApp
                 return;
             }
             var uuid = Guid.NewGuid().ToString();
-            var filename = ini.ImageDir + "stamps/" + uuid + ".jpg";
+            var filename = ini.PosDir + uuid + ".jpg";
 
             using (var bmp = AntPicture.TrimImage((Bitmap)PictureBox.Image))
             {
