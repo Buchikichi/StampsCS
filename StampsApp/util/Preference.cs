@@ -56,6 +56,8 @@ namespace StampsApp.util
         public Rectangle ClipRectangle => GetRectangle(CATEGORY_IMAGE, nameof(ClipRectangle));
         public int JpegQuality => GetInt(CATEGORY_IMAGE, nameof(JpegQuality));
 
+        public Rectangle DetectRectangle => GetRectangle(CATEGORY_IMAGE, nameof(DetectRectangle));
+
         public string ImageDir => GetString(CATEGORY_FILE, nameof(ImageDir));
         public string PosDir => ImageDir + "/" + GetString(CATEGORY_FILE, nameof(PosDir));
         public string NegDir => ImageDir + "/" + GetString(CATEGORY_FILE, nameof(NegDir));

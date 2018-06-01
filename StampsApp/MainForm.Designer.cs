@@ -32,6 +32,7 @@
             this.FileListBox = new System.Windows.Forms.ListBox();
             this.PictureBox = new System.Windows.Forms.PictureBox();
             this.CreateSampleButton = new System.Windows.Forms.Button();
+            this.DetectCheckBox = new System.Windows.Forms.CheckBox();
             this.AntPicture = new StampsApp.behavior.AntPictureBox(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.AntPicture)).BeginInit();
@@ -60,7 +61,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.PictureBox.Location = new System.Drawing.Point(188, 12);
             this.PictureBox.Name = "PictureBox";
-            this.PictureBox.Size = new System.Drawing.Size(584, 537);
+            this.PictureBox.Size = new System.Drawing.Size(584, 498);
             this.PictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.PictureBox.TabIndex = 1;
             this.PictureBox.TabStop = false;
@@ -76,6 +77,18 @@
             this.CreateSampleButton.UseVisualStyleBackColor = true;
             this.CreateSampleButton.Click += new System.EventHandler(this.CreateSampleButton_Click);
             // 
+            // DetectCheckBox
+            // 
+            this.DetectCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.DetectCheckBox.AutoSize = true;
+            this.DetectCheckBox.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.DetectCheckBox.Location = new System.Drawing.Point(188, 523);
+            this.DetectCheckBox.Name = "DetectCheckBox";
+            this.DetectCheckBox.Size = new System.Drawing.Size(81, 23);
+            this.DetectCheckBox.TabIndex = 4;
+            this.DetectCheckBox.Text = "Detect";
+            this.DetectCheckBox.UseVisualStyleBackColor = true;
+            // 
             // AntPicture
             // 
             this.AntPicture.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -84,7 +97,7 @@
             this.AntPicture.BackColor = System.Drawing.Color.Transparent;
             this.AntPicture.Location = new System.Drawing.Point(188, 12);
             this.AntPicture.Name = "AntPicture";
-            this.AntPicture.Size = new System.Drawing.Size(584, 537);
+            this.AntPicture.Size = new System.Drawing.Size(584, 498);
             this.AntPicture.TabIndex = 2;
             this.AntPicture.TabStop = false;
             this.AntPicture.DoubleClick += new System.EventHandler(this.AntPicture_DoubleClick);
@@ -94,6 +107,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 19F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(784, 561);
+            this.Controls.Add(this.DetectCheckBox);
             this.Controls.Add(this.CreateSampleButton);
             this.Controls.Add(this.AntPicture);
             this.Controls.Add(this.PictureBox);
@@ -107,6 +121,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.PictureBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.AntPicture)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -116,6 +131,7 @@
         private System.Windows.Forms.PictureBox PictureBox;
         private behavior.AntPictureBox AntPicture;
         private System.Windows.Forms.Button CreateSampleButton;
+        private System.Windows.Forms.CheckBox DetectCheckBox;
     }
 }
 

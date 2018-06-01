@@ -95,6 +95,12 @@ namespace StampsApp.behavior
             }
             return bmp;
         }
+
+        public void Reset()
+        {
+            beginPt = null;
+            Refresh();
+        }
         #endregion
 
         #region 開始/終了

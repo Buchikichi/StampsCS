@@ -2,6 +2,7 @@
 using Emgu.CV.OCR;
 using Emgu.CV.Structure;
 using StampsApp.data;
+using StampsApp.IO;
 using StampsApp.util;
 using System;
 using System.Collections.Generic;
@@ -68,74 +69,87 @@ namespace StampsApp
             }
         }
 
+        private void Ocr(Bitmap img)
+        {
+            using (var tesseract = new Tesseract("I:/tesseract-ocr/tessdata/", "eng", OcrEngineMode.Default))
+            using (var mat = new Image<Bgr, byte>(img).Mat)
+            {
+                tesseract.SetImage(mat);
+                var i = tesseract.Recognize();
+                var text = tesseract.GetUTF8Text();
+
+                Debug.Print($"OCR[{text}]");
+            }
+        }
+
+        private void Detect(Bitmap img)
+        {
+            var halfW = img.Width * .5;
+            var halfH = img.Height * .5;
+            var cascade = new CascadeClassifier("C:/Users/dss/Desktop/images/cascade/cascade.xml");
+            var minRect = ini.DetectRectangle;
+
+            //cascade.Read();
+            Debug.Print("Detect");
+            using (var mat = new Image<Bgr, byte>(img).Mat)
+            {
+                //CvInvoke.Resize(mat, mat, new Size((int)halfW, (int)halfH));
+                var rectangles = cascade.DetectMultiScale(mat);
+
+                Debug.Print($"Detect:{rectangles.Length}");
+                foreach (var rect in rectangles)
+                {
+                    if (rect.Width < minRect.Width || rect.Height < minRect.Height)
+                    {
+                        continue;
+                    }
+                    CvInvoke.Rectangle(mat, rect, new MCvScalar(255, 0, 0), 2);
+                }
+                PictureBox.Image?.Dispose();
+                PictureBox.Image = mat.Bitmap;
+            }
+        }
+
         private void FileListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
+            Cursor.Current = Cursors.WaitCursor;
             var item = (PictureInfo)FileListBox.SelectedItem;
             var info = basePapers.ChooseBasePaper(item.Name);
 
             Debug.Print($"[{info.Name}]");
-            Cursor.Current = Cursors.WaitCursor;
             var img = (Bitmap)ImageUtils.Absdiff(info, item.Name);
 
-            //using (var tesseract = new Tesseract("I:/tesseract-ocr/tessdata/", "eng", OcrEngineMode.Default))
-            //using (var mat = new Image<Bgr, byte>(img).Mat)
-            //{
-            //    tesseract.SetImage(mat);
-            //    var i = tesseract.Recognize();
-            //    var text = tesseract.GetUTF8Text();
-
-            //    Debug.Print($"OCR[{text}]");
-            //}
-            PictureBox.Image?.Dispose();
-            PictureBox.Image = img;
+            //Ocr(img);
+            if (DetectCheckBox.Checked)
+            {
+                Detect(img);
+            } else
+            {
+                PictureBox.Image?.Dispose();
+                PictureBox.Image = img;
+            }
             Cursor.Current = Cursors.Default;
         }
 
         private void CreateSampleButton_Click(object sender, EventArgs e)
         {
-            var posFile = ini.PosDir + "list.txt";
-            var negFile = ini.NegDir + "neglist.txt";
+            var samples = new Samples();
 
-            using (var writer = new StreamWriter(posFile, append: false))
-            {
-                foreach (var file in Directory.GetFiles(ini.PosDir, "*.jpg"))
-                {
-                    var name = Path.GetFileName(file);
-
-                    using (var img = Image.FromFile(file))
-                    {
-                        var width = img.Width;
-                        var height = img.Height;
-                        var line = new List<string>{
-                            name, "1", "0", "0", width.ToString(), height.ToString(),
-                        };
-                        writer.WriteLine(string.Join(" ", line));
-                    }
-                }
-            }
-            using (var writer = new StreamWriter(negFile, append: false))
-            {
-                var negList = new List<string>();
-                var rel = Path.GetFileName(Path.GetDirectoryName(ini.NegDir));
-
-                Debug.Print(rel);
-                foreach (var ptn in new string[] { "*.jpg", "*.png" })
-                {
-                    negList.AddRange(Directory.GetFiles(ini.NegDir, ptn));
-                }
-                foreach (var file in negList)
-                {
-                    var name = "./" + rel + "/" + Path.GetFileName(file);
-
-                    writer.WriteLine(name);
-                    Debug.Print(name);
-                }
-            }
-            MessageBox.Show($"Wrote [{posFile}].");
+            samples.Save();
+            MessageBox.Show($"Samples saved.");
         }
         #endregion
 
         #region PictureBox
+        private void SaveWorking(PictureInfo info)
+        {
+            var filename = ini.PosDir + "work.txt";
+            using (var writer = new StreamWriter(filename, append: true))
+            {
+                writer.WriteLine(info.Name);
+            }
+        }
+
         private void AntPicture_DoubleClick(object sender, EventArgs e)
         {
             var item = (PictureInfo)FileListBox.SelectedItem;
@@ -151,6 +165,8 @@ namespace StampsApp
             {
                 ImageUtils.Save(filename, bmp);
             }
+            AntPicture.Reset();
+            SaveWorking(item);
         }
         #endregion
 
