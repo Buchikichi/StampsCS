@@ -28,6 +28,21 @@ namespace StampsApp.util
             return buff.ToString();
         }
 
+        public Size GetSize(string appName, string key)
+        {
+            var width = 0;
+            var height = 0;
+            var str = GetString(appName, key);
+            var elements = str.Split(',');
+
+            if (2 <= elements.Length)
+            {
+                int.TryParse(elements[0], out width);
+                int.TryParse(elements[1], out height);
+            }
+            return new Size(width, height);
+        }
+
         public Rectangle GetRectangle(string appName, string key, string defaultValue = "")
         {
             var x = 0;
@@ -56,7 +71,8 @@ namespace StampsApp.util
         public Rectangle ClipRectangle => GetRectangle(CATEGORY_IMAGE, nameof(ClipRectangle));
         public int JpegQuality => GetInt(CATEGORY_IMAGE, nameof(JpegQuality));
 
-        public Rectangle DetectRectangle => GetRectangle(CATEGORY_IMAGE, nameof(DetectRectangle));
+        public Size DetectMin => GetSize(CATEGORY_IMAGE, nameof(DetectMin));
+        public Size DetectMax => GetSize(CATEGORY_IMAGE, nameof(DetectMax));
 
         public string ImageDir => GetString(CATEGORY_FILE, nameof(ImageDir));
         public string PosDir => ImageDir + "/" + GetString(CATEGORY_FILE, nameof(PosDir));

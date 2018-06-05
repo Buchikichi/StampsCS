@@ -87,22 +87,19 @@ namespace StampsApp
             var halfW = img.Width * .5;
             var halfH = img.Height * .5;
             var cascade = new CascadeClassifier("C:/Users/dss/Desktop/images/cascade/cascade.xml");
-            var minRect = ini.DetectRectangle;
+            var minSize = ini.DetectMin;
+            var maxSize = ini.DetectMax;
 
             //cascade.Read();
             Debug.Print("Detect");
             using (var mat = new Image<Bgr, byte>(img).Mat)
             {
                 //CvInvoke.Resize(mat, mat, new Size((int)halfW, (int)halfH));
-                var rectangles = cascade.DetectMultiScale(mat);
+                var rectangles = cascade.DetectMultiScale(mat, minSize: minSize, maxSize: maxSize);
 
                 Debug.Print($"Detect:{rectangles.Length}");
                 foreach (var rect in rectangles)
                 {
-                    if (rect.Width < minRect.Width || rect.Height < minRect.Height)
-                    {
-                        continue;
-                    }
                     CvInvoke.Rectangle(mat, rect, new MCvScalar(255, 0, 0), 2);
                 }
                 PictureBox.Image?.Dispose();
